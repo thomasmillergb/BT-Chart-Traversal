@@ -4,6 +4,10 @@
   | 3           | Invisible Woman | 1          |
   | 6           | Black Widow     | 2          |
   | 12          | Hit Girl        | 3          |
+  | 166          | Hit Girl        | 17          |
   | 15          | Super Ted       | 3          |
+  | 121         | Super Ted       | 6          |
+  | 124         | Super Ted       | 121          |
+  | 120         | Super Ted       | 15          |
   | 16          | Batman          | 6          |
   | 17          | Catwoman        | 6          |

@@ -1,9 +1,8 @@
 package com.bt;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Thomas on 27/06/2015.
@@ -15,9 +14,14 @@ public class Solution2 {
     private Map<Integer,Employee> employeeIdMap = new HashMap<Integer,Employee>();
     private Map<String,Employee> employeeNameMap = new HashMap<String,Employee>();
     private Map<Integer,HashMap<Integer,Employee>> employeeManagerIdMap = new HashMap<Integer, HashMap<Integer, Employee>>();
-
+    private Functions f = new Functions();
 
     private EmployeeTree ceo;
+
+    public Solution2() {
+
+    }
+
     public static void main(String[] args) {
 
         Load load = new Load();
@@ -26,7 +30,9 @@ public class Solution2 {
         System.out.println(load.getEmployeeManagerIdMapIdMap());
         main.CreateOrganisationTree();
         //main.findEmployee(15);
-        System.out.println(main.shortestPath("Super Ted", "Catwoman"));
+        System.out.println(main.shortestPath("Dangermouse", "Hit       g irl  "));
+     //  System.out.println(main.shortestPath("Hit Girl", "Catwoman"));
+     //   System.out.println(main.shortestPath("Batman", "Catwoman"));
 
         //System.out.println(main.findManager("Batman", "Catwoman"));
         //System.out.println(main.findManager("Batman", "Hit Girl"));
@@ -63,28 +69,50 @@ public class Solution2 {
         }
     }
     public String shortestPath(String name1, String name2){
-        Stack employee1Path = findEmployeeByName(name1);
-        Stack employee2Path = findEmployeeByName(name2);
+        HashSet<EmployeeTree> employee1PathSet = new HashSet<EmployeeTree>();
+        //while(employee1PathSet.contains())
+        name1=f.stripNoise(name1);
+        name2=f.stripNoise(name2);
+
+        HashSet employee1Paths = findSameNames(name1);
+        HashSet employee2Paths = findSameNames(name2);
+
+
+        for (Object emp1 :  employee1Paths) {
+            for (Object emp2 : employee2Paths) {
+                Stack clone1 = new Stack();
+                Stack clone2 = new Stack();
+                clone1.addAll((Stack) emp1);
+                clone2.addAll((Stack) emp2);
+                System.out.println(getPath(clone1, clone2));
+            }
+        }
+
+        return "";
+
+    }
+
+    public String getPath(Stack employee1Path, Stack employee2Path){
         String path = "";
 
         EmployeeTree tempEmp = (EmployeeTree) employee1Path.peek();
-        while(!employee2Path.contains(tempEmp)){
-            path += tempEmp.getEmployee().toString()+ " -> ";
+        while (!employee2Path.contains(tempEmp)) {
+            path += tempEmp.getEmployee().toString() + " -> ";
             employee1Path.pop();
             tempEmp = (EmployeeTree) employee1Path.peek();
-           // EmployeeTree tempEmp = (EmployeeTree) employee1Path.peek();
+            // EmployeeTree tempEmp = (EmployeeTree) employee1Path.peek();
         }
         path += tempEmp.getEmployee().toString();
         tempEmp = (EmployeeTree) employee2Path.peek();
-        String path2 ="";
-        while(!employee1Path.contains(tempEmp)){
-            path2 = " <- "+tempEmp.getEmployee().toString()+ path2;
+        String path2 = "";
+        while (!employee1Path.contains(tempEmp)) {
+            path2 = " <- " + tempEmp.getEmployee().toString() + path2;
             employee2Path.pop();
             tempEmp = (EmployeeTree) employee2Path.peek();
             // EmployeeTree tempEmp = (EmployeeTree) employee1Path.peek();
         }
 
-        return path +path2;
+        return path + path2;
 
     }
     /*
@@ -97,7 +125,7 @@ public class Solution2 {
     //Traverses through the tree till the Employee is found.
     public EmployeeTree findEmployee(int id){
         EmployeeTree e=  findEmployee(id,ceo);
-     //   System.out.println(e);
+        //   System.out.println(e);
         return e;
 
     }
@@ -114,25 +142,46 @@ public class Solution2 {
             EmployeeTree eT = (EmployeeTree) pair.getValue();
             EmployeeTree result = findEmployee(id, eT);
             if(result.getEmployee().getId()== id)
-               return result;
+                return result;
 
         }
         return e;
 
     }
-    public Stack findEmployeeByName(String name){
-        Stack path = new Stack();
-        return findEmployeeByName(name, ceo, path);
 
+    public HashSet<Stack> findSameNames(String name){
+        HashSet<EmployeeTree> employee1PathSet = new HashSet<EmployeeTree>();
+        HashSet<Stack> paths = new HashSet<Stack>();
+        boolean end= true;
+        while(!employee1PathSet.contains(ceo)&&end) {
+            Stack path = new Stack();
+            path =findEmployeeByName(name, ceo, path, employee1PathSet);
+            if(path.size()==0){
+                end =false;
+            }
+            else {
+                EmployeeTree last = (EmployeeTree) path.peek();
+
+
+                if (!last.getEmployee().getNormlisedName().equals(name))
+                    end = false;
+                else {
+                    employee1PathSet.add(last);
+                    paths.add(path);
+                }
+            }
+        }
+        return paths;
     }
-    public Stack findEmployeeByName(String name, EmployeeTree e,Stack path){
-        if(e.getEmployee().getName().equals(name)) {
+    public Stack findEmployeeByName(String name, EmployeeTree e,Stack path,HashSet<EmployeeTree> employee1PathSet){
+        if(e.getEmployee().getNormlisedName().equals(name)&&!employee1PathSet.contains(e)) {
             path.push(e);
             return path;
         }
         Map<Integer, EmployeeTree> children = e.getChildren();
         if(children.size()==0){
             //path.push(e);
+
             return path;
         }
 
@@ -142,9 +191,11 @@ public class Solution2 {
         while (it.hasNext()){
             Map.Entry pair = (Map.Entry) it.next();
             EmployeeTree eT = (EmployeeTree) pair.getValue();
-            EmployeeTree result = (EmployeeTree) findEmployeeByName(name, eT,path).peek();
-            if(result.getEmployee().getName().equals(name)){
-               // path.push(result);
+            EmployeeTree result = (EmployeeTree) findEmployeeByName(name, eT,path,employee1PathSet).peek();
+
+            if(!employee1PathSet.contains(result) &&result.getEmployee().getNormlisedName().equals(name)){
+                // path.push(result);
+
                 return path;
             }
 
@@ -164,7 +215,7 @@ class EmployeeTree{
     EmployeeTree(Employee employee) {
         this.employee = employee;
         this.children = new HashMap<Integer,EmployeeTree>();
-    //    this.employeeIdMap=employeeIdMap;
+        //    this.employeeIdMap=employeeIdMap;
     }
     public Map<Integer,EmployeeTree> getChildren(){return children;}
     public Employee getEmployee(){return employee;}
