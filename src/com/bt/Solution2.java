@@ -8,39 +8,42 @@ import java.util.regex.Pattern;
  * Created by Thomas on 27/06/2015.
  */
 
-//I have kept solution 2 as close to as a POJO solution, to show i can do traditional Traversal through a POJO tree
+    //I have kept solution 2 as close to as a POJO solution, to show i can do traditional Traversal through a POJO tree
+    //Even though this solution works with no issues, it is not the most efficient solution due to needing to traverse
+    //through the tree.
+
+    //Future Optimizations
+    /*
+    A big waste of search time is searching for multiple names because every time the program needs to find a employee
+    it has to traverse through the tree from the beginning again. To optimize, every time an employee is found, the path
+    should be added to a collection. Once the traversal of the tree has completed the collection of path should be returned.
+
+     */
+
 
 public class Solution2 {
-    private Map<Integer,Employee> employeeIdMap = new HashMap<Integer,Employee>();
-    private Map<String,Employee> employeeNameMap = new HashMap<String,Employee>();
-    private Map<Integer,HashMap<Integer,Employee>> employeeManagerIdMap = new HashMap<Integer, HashMap<Integer, Employee>>();
-    private Functions f = new Functions();
 
+    //Not the best looking DS but it work very effectively
+    private Map<Integer,HashMap<Integer,Employee>> employeeManagerIdMap;
+    private Functions f = new Functions();
+    //The head of the Tree
     private EmployeeTree ceo;
 
-    public Solution2() {
-
-    }
 
     public static void main(String[] args) {
 
         Load load = new Load();
         load.loadEmployees(args[0]);
-        Solution2 main = new Solution2(load.getEmployeeIdMap(),load.getEmployeeNameMap(),load.getEmployeeManagerIdMapIdMap());
+        Solution2 main = new Solution2(load.getEmployeeManagerIdMapIdMap());
         System.out.println(load.getEmployeeManagerIdMapIdMap());
         main.CreateOrganisationTree();
         //main.findEmployee(15);
-        System.out.println(main.shortestPath("Dangermouse", "Hit       g irl  "));
-     //  System.out.println(main.shortestPath("Hit Girl", "Catwoman"));
-     //   System.out.println(main.shortestPath("Batman", "Catwoman"));
-
-        //System.out.println(main.findManager("Batman", "Catwoman"));
-        //System.out.println(main.findManager("Batman", "Hit Girl"));
-
+        for(String s:main.shortestPath(args[1],args[2]))
+            System.out.println(s);
+        // I would normally write this
+        //main.shortestPath(args[1],args[2]).forEach(System.out::println);
     }
-    public Solution2(Map<Integer, Employee> employeeIdMap, Map<String, Employee> employeeNameMap, Map<Integer, HashMap<Integer, Employee>> employeeManagerIdMapIdMap) {
-        this.employeeNameMap = employeeNameMap;
-        this.employeeIdMap = employeeIdMap;
+    public Solution2(Map<Integer, HashMap<Integer, Employee>> employeeManagerIdMapIdMap) {
         this.employeeManagerIdMap = employeeManagerIdMapIdMap;
     }
 
@@ -68,27 +71,27 @@ public class Solution2 {
             }
         }
     }
-    public String shortestPath(String name1, String name2){
+    public LinkedList<String> shortestPath(String name1, String name2){
         HashSet<EmployeeTree> employee1PathSet = new HashSet<EmployeeTree>();
         //while(employee1PathSet.contains())
         name1=f.stripNoise(name1);
         name2=f.stripNoise(name2);
 
-        HashSet employee1Paths = findSameNames(name1);
-        HashSet employee2Paths = findSameNames(name2);
+        HashSet employee1Paths = findEmployeeByName(name1);
+        HashSet employee2Paths = findEmployeeByName(name2);
 
-
+        LinkedList<String> listOfPaths = new LinkedList<String>();
         for (Object emp1 :  employee1Paths) {
             for (Object emp2 : employee2Paths) {
                 Stack clone1 = new Stack();
                 Stack clone2 = new Stack();
                 clone1.addAll((Stack) emp1);
                 clone2.addAll((Stack) emp2);
-                System.out.println(getPath(clone1, clone2));
+                listOfPaths.add(getPath(clone1, clone2));
             }
         }
 
-        return "";
+        return listOfPaths;
 
     }
 
@@ -123,33 +126,7 @@ public class Solution2 {
     }
     */
     //Traverses through the tree till the Employee is found.
-    public EmployeeTree findEmployee(int id){
-        EmployeeTree e=  findEmployee(id,ceo);
-        //   System.out.println(e);
-        return e;
-
-    }
-    public EmployeeTree findEmployee(int id, EmployeeTree e){
-        if(e.getEmployee().getId()==id)
-            return e;
-
-        Map<Integer, EmployeeTree> children = e.getChildren();
-        if(children.size()==0)
-            return e;
-        Iterator it= children.entrySet().iterator();
-        while (it.hasNext()){
-            Map.Entry pair = (Map.Entry) it.next();
-            EmployeeTree eT = (EmployeeTree) pair.getValue();
-            EmployeeTree result = findEmployee(id, eT);
-            if(result.getEmployee().getId()== id)
-                return result;
-
-        }
-        return e;
-
-    }
-
-    public HashSet<Stack> findSameNames(String name){
+    public HashSet<Stack> findEmployeeByName(String name){
         HashSet<EmployeeTree> employee1PathSet = new HashSet<EmployeeTree>();
         HashSet<Stack> paths = new HashSet<Stack>();
         boolean end= true;
@@ -161,8 +138,6 @@ public class Solution2 {
             }
             else {
                 EmployeeTree last = (EmployeeTree) path.peek();
-
-
                 if (!last.getEmployee().getNormlisedName().equals(name))
                     end = false;
                 else {
@@ -198,7 +173,6 @@ public class Solution2 {
 
                 return path;
             }
-
 
         }
         path.pop();

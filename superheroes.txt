@@ -5,7 +5,7 @@
   | 6           | Black Widow     | 2          |
   | 12          | Hit Girl        | 3          |
   | 166          | Hit Girl        | 17          |
-  | 15          | Super Ted       | 3          |
+  | 15          | Super Ted1       | 3          |
   | 121         | Super Ted       | 6          |
   | 124         | Super Ted       | 121          |
   | 120         | Super Ted       | 15          |
